@@ -1,10 +1,8 @@
 # Ruleta 21
 
-Primera versión del juego de ruletas por mundos.
+Juego 2D de ruletas por universos. Esta versión contiene las dos primeras etapas de cada partida.
 
-## Etapa 1: ¿Naces?
-
-Selecciona uno de los seis mundos disponibles:
+## Universos disponibles
 
 - Isekai
 - Avengers
@@ -13,25 +11,51 @@ Selecciona uno de los seis mundos disponibles:
 - Naruto
 - Jujutsu Kaisen
 
-Después aparece una ruleta 2D con dos resultados:
+## Etapa 1: ¿Naces?
+
+La primera ruleta determina si el jugador nace en el universo elegido:
 
 - **SÍ: 95 %**
 - **NO: 5 %**
 
-El resultado se sortea de nuevo en cada tirada. El 5 % de «NO» es una posibilidad real, no una opción desactivada. La ruleta muestra visualmente el resultado elegido.
+El resultado se calcula en cada tirada. Si sale «NO», la partida termina y el jugador puede volver a elegir universo. Si sale «SÍ», la aplicación muestra la confirmación y pasa automáticamente a la segunda etapa.
 
-## Ejecutar el juego
+## Etapa 2: ¿Cuál será tu raza?
 
-Abre `index.html` en un navegador moderno. No necesita instalar dependencias ni ejecutar un servidor.
+La segunda ruleta contiene ocho opciones con la misma probabilidad (12,5 % cada una):
 
-Cada visitante juega su propia partida en su navegador. Esta primera etapa no incluye cuentas, base de datos ni sincronización entre jugadores.
+- Humano
+- Elfo
+- Enano
+- Bestia
+- Demonio
+- Ángel
+- Vampiro
+- Dragónido
+
+Al completar esta tirada, se muestra la raza asignada y el jugador puede comenzar otra partida eligiendo un universo.
+
+## Diseño y funcionamiento
+
+- Interfaz oscura de estilo cinematográfico, con detalles metálicos.
+- Ruletas 2D vectoriales, generadas en el navegador.
+- Sorteos independientes para cada visitante.
+- Usa `crypto.getRandomValues` cuando el navegador lo admite.
+- No requiere bibliotecas, dependencias ni servidor para jugar localmente.
+
+## Ejecutar
+
+Abre `index.html` en un navegador moderno.
 
 ## Publicar con GitHub Pages
 
-1. En el repositorio, abre **Settings → Pages**.
+1. Abre **Settings → Pages** en el repositorio.
 2. En **Build and deployment**, selecciona **Deploy from a branch**.
-3. Elige la rama **main** y la carpeta **/(root)**, y guarda.
-4. Cuando GitHub Pages termine de publicar, la dirección del sitio será:
-   https://thiandominguez100-stack.github.io/ruleta21/
+3. Selecciona la rama **main** y la carpeta **/(root)**.
+4. Guarda y espera a que GitHub Pages publique el sitio.
 
-Las etapas posteriores del juego todavía no están implementadas; se añadirán después de definirlas.
+La dirección esperada será:
+
+https://thiandominguez100-stack.github.io/ruleta21/
+
+La publicación requiere activar GitHub Pages desde los ajustes del repositorio.
