@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10101d">
+  <meta name="description" content="Elige un universo y descubre si naces en él. Una ruleta de destinos con probabilidades de 95 % y 5 %.">
+  <title>Ruleta 21 — Ruleta de destinos</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0b14;
+      --panel: rgba(24, 24, 40, .88);
+      --panel-border: rgba(255,255,255,.1);
+      --text: #f5f2ff;
+      --muted: #aaa6bd;
+      --accent: #a78bfa;
+      --yes: #23b985;
+      --no: #e45b70;
+      --spin-ms: 5200ms;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 18% 8%, rgba(94, 67, 160, .24), transparent 36rem),
+        radial-gradient(ellipse at 88% 82%, rgba(25, 126, 115, .15), transparent 34rem),
+        var(--bg);
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .2;
+      background-image: radial-gradient(rgba(255,255,255,.7) .7px, transparent .7px);
+      background-size: 31px 31px;
+      mask-image: linear-gradient(to bottom, black, transparent 88%);
+    }
+    button { font: inherit; }
+    .app-shell { position: relative; width: min(1120px, calc(100% - 36px)); margin: 0 auto; padding: 30px 0 52px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 42px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px;
+      background: linear-gradient(145deg, #aa8aff, #6441bd);
+      box-shadow: 0 8px 30px rgba(130, 93, 225, .28);
+      color: white; font-size: 16px; font-weight: 900; letter-spacing: -1px;
+    }
+    .brand-name { font-weight: 850; letter-spacing: .13em; font-size: 13px; }
+    .brand-caption { margin-top: 3px; color: var(--muted); font-size: 10px; letter-spacing: .19em; }
+    .edition { border: 1px solid var(--panel-border); color: #c8c0de; border-radius: 999px; padding: 8px 13px; font-size: 11px; letter-spacing: .12em; }
+    .intro { max-width: 720px; margin: 0 auto 32px; text-align: center; }
+    .eyebrow { color: #b69bff; font-size: 11px; font-weight: 800; letter-spacing: .28em; text-transform: uppercase; }
+    h1 { margin: 13px 0 10px; font-size: clamp(36px, 6vw, 62px); line-height: 1.02; letter-spacing: -.055em; }
+    .intro p { color: var(--muted); line-height: 1.65; margin: 0 auto; max-width: 590px; font-size: 14px; }
+    .panel {
+      border: 1px solid var(--panel-border);
+      border-radius: 26px;
+      background: linear-gradient(145deg, rgba(29, 27, 47, .92), rgba(17, 18, 31, .94));
+      box-shadow: 0 26px 90px rgba(0,0,0,.28), inset 0 1px rgba(255,255,255,.035);
+      backdrop-filter: blur(16px);
+    }
+    .selection-panel { padding: clamp(22px, 4vw, 38px); }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 12px; margin-bottom: 23px; }
+    .section-heading h2 { margin: 0; font-size: 22px; letter-spacing: -.035em; }
+    .section-heading p { margin: 6px 0 0; font-size: 13px; color: var(--muted); }
+    .step-pill { color: #c9b8ff; background: rgba(155, 123, 255, .1); border: 1px solid rgba(177, 148, 255, .2); border-radius: 999px; padding: 7px 11px; font-size: 10px; font-weight: 800; letter-spacing: .14em; white-space: nowrap; }
+    .world-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 13px; }
+    .world-card {
+      position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+      min-height: 146px; padding: 18px; border: 1px solid rgba(255,255,255,.1); border-radius: 18px;
+      color: var(--text); text-align: left; cursor: pointer; overflow: hidden;
+      background: linear-gradient(145deg, rgba(72,63,105,.45), rgba(31,31,50,.7));
+      transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+    }
+    .world-card::after { content: ""; position: absolute; width: 130px; height: 130px; right: -56px; bottom: -70px; border-radius: 50%; background: var(--glow, rgba(167,139,250,.25)); filter: blur(3px); }
+    .world-card:hover { transform: translateY(-4px); border-color: rgba(190,166,255,.55); box-shadow: 0 12px 30px rgba(0,0,0,.22); }
+    .world-card:focus-visible, button:focus-visible { outline: 3px solid #c2aaff; outline-offset: 3px; }
+    .world-card:active { transform: translateY(-1px) scale(.99); }
+    .world-icon { position: relative; z-index: 1; display: grid; place-items: center; width: 43px; height: 43px; border-radius: 13px; background: rgba(255,255,255,.09); font-size: 23px; }
+    .world-copy { position: relative; z-index: 1; margin-top: 20px; }
+    .world-title { display: block; font-weight: 800; font-size: 15px; letter-spacing: -.02em; }
+    .world-subtitle { display: block; margin-top: 5px; color: #b9b4c9; font-size: 11px; }
+    .world-arrow { position: absolute; right: 17px; bottom: 19px; color: #c8b5ff; z-index: 2; font-size: 18px; }
+    .world-card[data-world="isekai"] { --glow: rgba(113, 104, 255, .28); }
+    .world-card[data-world="avengers"] { --glow: rgba(59, 140, 225, .3); }
+    .world-card[data-world="ragnarok"] { --glow: rgba(210, 106, 66, .3); }
+    .world-card[data-world="one-piece"] { --glow: rgba(35, 173, 184, .3); }
+    .world-card[data-world="naruto"] { --glow: rgba(235, 139, 54, .3); }
+    .world-card[data-world="jujutsu"] { --glow: rgba(159, 91, 208, .3); }
+    .game-panel { display: none; padding: clamp(20px, 4vw, 36px); }
+    .game-panel.is-visible { display: block; animation: appear .35s ease both; }
+    .selection-panel.is-hidden { display: none; }
+    @keyframes appear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .game-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .back-button { border: 1px solid rgba(255,255,255,.13); border-radius: 999px; padding: 9px 13px; color: #ded8ed; background: rgba(255,255,255,.045); cursor: pointer; font-size: 12px; }
+    .back-button:hover { background: rgba(255,255,255,.1); }
+    .world-kicker { color: #b69bff; font-size: 10px; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; text-align: right; }
+    .game-title { margin: 23px 0 6px; text-align: center; font-size: clamp(27px, 5vw, 40px); letter-spacing: -.04em; }
+    .game-description { margin: 0; text-align: center; color: var(--muted); font-size: 13px; }
+    .wheel-stage { display: flex; justify-content: center; align-items: center; padding: 31px 0 22px; }
+    .wheel-wrap { position: relative; width: min(330px, 76vw); aspect-ratio: 1; }
+    .wheel {
+      position: absolute; inset: 0; border-radius: 50%; padding: 12px;
+      background: linear-gradient(145deg, #c7b1ff, #66509a 48%, #302744);
+      box-shadow: 0 0 0 1px rgba(255,255,255,.18), 0 20px 50px rgba(0,0,0,.42), 0 0 55px rgba(148,111,255,.17);
+      transform: rotate(0deg);
+      transition: transform var(--spin-ms) cubic-bezier(.12,.78,.14,1);
+      will-change: transform;
+    }
+    .wheel-face {
+      position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden;
+      border: 4px solid rgba(255,255,255,.72);
+      background: conic-gradient(var(--no) 0deg 9deg, var(--yes) 9deg 351deg, var(--no) 351deg 360deg);
+    }
+    .wheel-face::after { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(255,255,255,.38); border-radius: 50%; }
+    .wheel-label { position: absolute; z-index: 1; font-weight: 950; letter-spacing: .12em; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+    .wheel-label--yes { left: 50%; bottom: 17%; transform: translateX(-50%); font-size: clamp(24px, 6vw, 32px); }
+    .wheel-label--no { top: 5%; left: 50%; transform: translateX(-50%); font-size: 9px; letter-spacing: .08em; }
+    .wheel-center {
+      position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      display: grid; place-items: center; width: 91px; height: 91px; border-radius: 50%;
+      border: 5px solid #d5c7f5; background: radial-gradient(circle at 35% 25%, #37304e, #171522 72%);
+      box-shadow: 0 4px 15px rgba(0,0,0,.5), inset 0 0 0 2px rgba(255,255,255,.08);
+      color: #e9e1ff; font-size: 15px; font-weight: 950; letter-spacing: .13em;
+    }
+    .wheel-pointer {
+      position: absolute; z-index: 5; top: -11px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent;
+      border-top: 0; border-bottom: 30px solid #f5d47c; filter: drop-shadow(0 3px 5px rgba(0,0,0,.5));
+    }
+    .probability-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,.1); background: rgba(255,255,255,.035); border-radius: 999px; padding: 9px 14px; color: #d8d3e2; font-size: 12px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .legend-dot.yes { background: var(--yes); box-shadow: 0 0 12px rgba(35,185,133,.6); }
+    .legend-dot.no { background: var(--no); box-shadow: 0 0 12px rgba(228,91,112,.6); }
+    .spin-area { display: grid; justify-items: center; gap: 12px; margin-top: 25px; }
+    .spin-button {
+      min-width: min(290px, 100%); border: 0; border-radius: 14px; padding: 16px 24px;
+      color: #171223; background: linear-gradient(135deg, #d0baff, #a58aff 55%, #8b6ae2);
+      box-shadow: 0 9px 26px rgba(143,111,231,.25); cursor: pointer;
+      font-weight: 950; font-size: 12px; letter-spacing: .17em; transition: transform .2s ease, filter .2s ease;
+    }
+    .spin-button:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
+    .spin-button:disabled { opacity: .55; cursor: wait; }
+    .hint { margin: 0; color: #8f8aa1; font-size: 11px; text-align: center; }
+    .result-box { display: none; margin: 24px auto 0; max-width: 570px; padding: 22px; border: 1px solid rgba(255,255,255,.12); border-radius: 18px; text-align: center; background: rgba(255,255,255,.045); }
+    .result-box.is-visible { display: block; animation: appear .35s ease both; }
+    .result-symbol { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 12px; border-radius: 15px; font-size: 22px; }
+    .result-box.yes .result-symbol { background: rgba(35,185,133,.15); }
+    .result-box.no .result-symbol { background: rgba(228,91,112,.15); }
+    .result-title { margin: 0; font-size: 25px; font-weight: 950; letter-spacing: -.04em; }
+    .result-box.yes .result-title { color: #70e4bd; }
+    .result-box.no .result-title { color: #ff8fa0; }
+    .result-message { margin: 8px 0 18px; color: #bbb5c9; font-size: 13px; line-height: 1.5; }
+    .again-button { border: 1px solid rgba(255,255,255,.16); border-radius: 11px; background: rgba(255,255,255,.07); color: #eee9f8; padding: 11px 16px; cursor: pointer; font-size: 12px; }
+    .again-button:hover { background: rgba(255,255,255,.13); }
+    .footer-note { margin: 20px auto 0; max-width: 700px; color: #777287; font-size: 10px; line-height: 1.6; text-align: center; }
+    @media (max-width: 700px) {
+      .app-shell { width: min(100% - 24px, 520px); padding-top: 18px; }
+      .topbar { margin-bottom: 31px; }
+      .world-grid { grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+      .world-card { min-height: 132px; padding: 14px; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .edition { font-size: 9px; }
+    }
+    @media (max-width: 390px) {
+      .world-grid { grid-template-columns: 1fr; }
+      .world-card { min-height: 112px; flex-direction: row; align-items: center; }
+      .world-copy { margin: 0 auto 0 13px; }
+      .world-arrow { top: 50%; bottom: auto; transform: translateY(-50%); }
+      .wheel-wrap { width: min(290px, 76vw); }
+      .wheel-center { width: 77px; height: 77px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+      .wheel { transition-duration: 700ms; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand" aria-label="Ruleta 21">
+        <div class="brand-mark">R21</div>
+        <div>
+          <div class="brand-name">RULETA 21</div>
+          <div class="brand-caption">DESTINOS INFINITOS</div>
+        </div>
+      </div>
+      <div class="edition">EDICIÓN 01 · NACIMIENTO</div>
+    </header>
+
+    <section class="intro" aria-labelledby="main-title">
+      <div class="eyebrow">Tu historia comienza aquí</div>
+      <h1 id="main-title">Elige tu universo.</h1>
+      <p>Cada mundo tiene sus propias aventuras. Primero tendrás que descubrir si el destino te permite nacer en él.</p>
+    </section>
+
+    <section class="panel selection-panel" id="selection-panel" aria-labelledby="world-heading">
+      <div class="section-heading">
+        <div>
+          <h2 id="world-heading">Selecciona un mundo</h2>
+          <p>Elige uno para abrir su primera ruleta.</p>
+        </div>
+        <span class="step-pill">PASO 01 / 01</span>
+      </div>
+      <div class="world-grid">
+        <button class="world-card" type="button" data-world="isekai" data-title="Isekai">
+          <span class="world-icon" aria-hidden="true">🌀</span>
+          <span class="world-copy"><span class="world-title">Isekai</span><span class="world-subtitle">Un nuevo mundo, otra vida</span></span>
+          <span class="world-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="world-card" type="button" data-world="avengers" data-title="Avengers">
+          <span class="world-icon" aria-hidden="true">🛡️</span>
+          <span class="world-copy"><span class="world-title">Avengers</span><span class="world-subtitle">Héroes y grandes amenazas</span></span>
+          <span class="world-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="world-card" type="button" data-world="ragnarok" data-title="Ragnarok">
+          <span class="world-icon" aria-hidden="true">⚔️</span>
+          <span class="world-copy"><span class="world-title">Ragnarok</span><span class="world-subtitle">Dioses, mitos y destinos</span></span>
+          <span class="world-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="world-card" type="button" data-world="one-piece" data-title="One Piece">
+          <span class="world-icon" aria-hidden="true">🌊</span>
+          <span class="world-copy"><span class="world-title">One Piece</span><span class="world-subtitle">El océano te espera</span></span>
+          <span class="world-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="world-card" type="button" data-world="naruto" data-title="Naruto">
+          <span class="world-icon" aria-hidden="true">🍃</span>
+          <span class="world-copy"><span class="world-title">Naruto</span><span class="world-subtitle">El camino del shinobi</span></span>
+          <span class="world-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="world-card" type="button" data-world="jujutsu" data-title="Jujutsu Kaisen">
+          <span class="world-icon" aria-hidden="true">🔮</span>
+          <span class="world-copy"><span class="world-title">Jujutsu Kaisen</span><span class="world-subtitle">Un mundo de energía maldita</span></span>
+          <span class="world-arrow" aria-hidden="true">↗</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="panel game-panel" id="game-panel" aria-labelledby="game-title" aria-hidden="true">
+      <div class="game-top">
+        <button class="back-button" type="button" id="back-button">← Cambiar de mundo</button>
+        <div class="world-kicker" id="world-kicker">MUNDO SELECCIONADO</div>
+      </div>
+      <h2 class="game-title" id="game-title">¿Naces?</h2>
+      <p class="game-description" id="game-description">El destino decidirá si puedes comenzar tu historia.</p>
+
+      <div class="wheel-stage">
+        <div class="wheel-wrap" aria-label="Ruleta con 95 por ciento de probabilidad de sí y 5 por ciento de probabilidad de no">
+          <div class="wheel" id="wheel">
+            <div class="wheel-face">
+              <span class="wheel-label wheel-label--no">NO</span>
+              <span class="wheel-label wheel-label--yes">SÍ</span>
+            </div>
+          </div>
+          <div class="wheel-center" aria-hidden="true">R21</div>
+          <div class="wheel-pointer" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="probability-legend" aria-label="Probabilidades">
+        <div class="legend-item"><span class="legend-dot yes"></span><strong>SÍ · 95 %</strong></div>
+        <div class="legend-item"><span class="legend-dot no"></span><strong>NO · 5 %</strong></div>
+      </div>
+
+      <div class="spin-area">
+        <button class="spin-button" id="spin-button" type="button">GIRAR RULETA</button>
+        <p class="hint" id="hint">La ruleta tiene una posibilidad real de elegir cualquiera de los dos resultados.</p>
+      </div>
+
+      <div class="result-box" id="result-box" role="status" aria-live="polite">
+        <div class="result-symbol" id="result-symbol" aria-hidden="true">✨</div>
+        <h3 class="result-title" id="result-title">¡NACISTE!</h3>
+        <p class="result-message" id="result-message"></p>
+        <button class="again-button" id="again-button" type="button">Volver a elegir mundo</button>
+      </div>
+    </section>
+
+    <p class="footer-note">Esta es la primera etapa de Ruleta 21. Las siguientes ruletas se incorporarán después de completar la etapa de nacimiento. Cada visitante juega su propia partida en su navegador.</p>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const selectionPanel = document.getElementById("selection-panel");
+      const gamePanel = document.getElementById("game-panel");
+      const wheel = document.getElementById("wheel");
+      const spinButton = document.getElementById("spin-button");
+      const backButton = document.getElementById("back-button");
+      const againButton = document.getElementById("again-button");
+      const resultBox = document.getElementById("result-box");
+      const resultTitle = document.getElementById("result-title");
+      const resultMessage = document.getElementById("result-message");
+      const resultSymbol = document.getElementById("result-symbol");
+      const gameTitle = document.getElementById("game-title");
+      const gameDescription = document.getElementById("game-description");
+      const worldKicker = document.getElementById("world-kicker");
+      const hint = document.getElementById("hint");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const spinDuration = reducedMotion ? 700 : 5200;
+
+      let selectedWorld = "";
+      let selectedWorldTitle = "";
+      let totalRotation = 0;
+      let spinning = false;
+      let hasSpun = false;
+
+      function randomInt(max) {
+        if (!Number.isInteger(max) || max < 1 || max > 0x100000000) {
+          throw new RangeError("El límite aleatorio no es válido.");
+        }
+        if (window.crypto && typeof window.crypto.getRandomValues === "function") {
+          const range = 0x100000000;
+          const limit = Math.floor(range / max) * max;
+          const values = new Uint32Array(1);
+          let value;
+          do {
+            window.crypto.getRandomValues(values);
+            value = values[0];
+          } while (value >= limit);
+          return value % max;
+        }
+        return Math.floor(Math.random() * max);
+      }
+
+      function resetWheel() {
+        wheel.style.transition = "none";
+        wheel.style.transform = "rotate(0deg)";
+        totalRotation = 0;
+        void wheel.offsetWidth;
+        wheel.style.transition = "";
+      }
+
+      function openWorld(button) {
+        if (spinning) return;
+        selectedWorld = button.dataset.world || "";
+        selectedWorldTitle = button.dataset.title || "este mundo";
+        if (!selectedWorld) return;
+
+        gameTitle.textContent = "¿Naces?";
+        gameDescription.textContent = "¿El destino te permitirá nacer en " + selectedWorldTitle + "?";
+        worldKicker.textContent = "MUNDO: " + selectedWorldTitle.toUpperCase();
+        selectionPanel.classList.add("is-hidden");
+        gamePanel.classList.add("is-visible");
+        gamePanel.setAttribute("aria-hidden", "false");
+        resetWheel();
+        resultBox.className = "result-box";
+        resultMessage.textContent = "";
+        spinButton.disabled = false;
+        spinButton.textContent = "GIRAR RULETA";
+        spinButton.hidden = false;
+        hint.textContent = "La ruleta tiene una posibilidad real de elegir cualquiera de los dos resultados.";
+        spinning = false;
+        hasSpun = false;
+        spinButton.focus();
+      }
+
+      function returnToWorlds() {
+        if (spinning) return;
+        gamePanel.classList.remove("is-visible");
+        gamePanel.setAttribute("aria-hidden", "true");
+        selectionPanel.classList.remove("is-hidden");
+        selectedWorld = "";
+        selectedWorldTitle = "";
+        resultBox.className = "result-box";
+        resetWheel();
+        document.getElementById("world-heading").scrollIntoView({ behavior: reducedMotion ? "auto" : "smooth", block: "center" });
+      }
+
+      function showResult(isBorn) {
+        spinning = false;
+        hasSpun = true;
+        spinButton.hidden = true;
+        resultBox.className = "result-box is-visible " + (isBorn ? "yes" : "no");
+        resultSymbol.textContent = isBorn ? "✨" : "🌑";
+        resultTitle.textContent = isBorn ? "¡NACISTE!" : "NO NACISTE";
+        resultMessage.textContent = isBorn
+          ? "El destino te ha elegido. Tu historia comienza en " + selectedWorldTitle + "."
+          : "Esta vez el destino no te eligió para " + selectedWorldTitle + ". Puedes volver a seleccionar un mundo.";
+      }
+
+      function spin() {
+        if (spinning || hasSpun || !selectedWorld) return;
+        spinning = true;
+        spinButton.disabled = true;
+        spinButton.textContent = "LA RULETA ESTÁ GIRANDO…";
+        hint.textContent = "El resultado se está decidiendo.";
+
+        // 5 resultados de cada 100 son NO; los otros 95 son SÍ.
+        const isNo = randomInt(100) < 5;
+        const targetAngle = isNo ? 0 : 180;
+        const currentAngle = ((totalRotation % 360) + 360) % 360;
+        const alignment = (targetAngle - currentAngle + 360) % 360;
+        const fullTurns = reducedMotion ? 2 : 6;
+        totalRotation += fullTurns * 360 + alignment;
+        wheel.style.transform = "rotate(" + totalRotation + "deg)";
+
+        window.setTimeout(() => {
+          showResult(!isNo);
+        }, spinDuration + 80);
+      }
+
+      document.querySelectorAll(".world-card").forEach((button) => {
+        button.addEventListener("click", () => openWorld(button));
+      });
+      spinButton.addEventListener("click", spin);
+      backButton.addEventListener("click", returnToWorlds);
+      againButton.addEventListener("click", returnToWorlds);
+    })();
+  </script>
+</body>
+</html>
